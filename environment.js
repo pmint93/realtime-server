@@ -10,11 +10,19 @@ module.exports = {
         console.log('STARTING ON PORT: ' + port);
 
         var io = require('socket.io').listen(Number(port));
+        var people_online = 0;
 
         io.on('connection', function(socket) {
 
             socket.on('realtime_user_id_connected', function(message) {
                 console.log('Realtime User ID connected: ' + message.userId);
+                people_online++;
+                io.sockets.emit('countOnline', people_online);
+            });
+
+            socket.on('disconnect', function () {
+                people_online--;
+                io.sockets.emit('countOnline', people_online);
             });
 
             redis.sub.on('message', function(channel, message) {
@@ -34,7 +42,9 @@ module.exports = {
                 }
                 if (msg.recipient_user_ids.length == 0 || msg.recipient_user_ids.indexOf(currentSocketIoUserId) != -1) {
                     delete msg.recipient_user_ids; //don't include this with the message
-                    socket.emit('realtime_msg', msg);
+                    var socketChannel = msg.channel || 'realtime_msg';
+                    delete msg.channel
+                    socket.emit(socketChannel, msg);
                 }
 
             });
