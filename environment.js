@@ -18,8 +18,8 @@ module.exports = {
             });
 
             redis.sub.on('message', function(channel, message) {
-                 // can't deliver a message to a socket with no handshake(session) established
 
+                 // can't deliver a message to a socket with no handshake(session) established
                 if (socket.request === undefined) {
                     return;
                 }
